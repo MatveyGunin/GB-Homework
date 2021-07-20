@@ -1,7 +1,4 @@
-﻿using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Running;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,93 +6,63 @@ using System.Threading.Tasks;
 
 namespace lesson4
 {
-
-
     class Program
     {
         static void Main(string[] args)
         {
-            var user_text = new textDataBenchmark();
-            var searchText = "Santa";
+            int searchData = 71;
+            var tree = new Tree<int>();
+            tree.Add(50);
+            tree.Add(33);
+            tree.Add(71);
+            tree.Add(12);
+            tree.Add(28);
+            tree.Add(88);
+            tree.Add(67);
+            tree.Add(90);
+            tree.Add(44);
 
-            Console.WriteLine($"Поиск слова {searchText} перебором массива:{user_text.searchString()}  через хэш:{user_text.searchHash()}");
-            BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
-        }
-    }
+            Console.WriteLine("Бинарное дерево поиска (BST):");
+            BTreePrinter<int>.Print(tree.Root);
+            //tree.PrintToConsoleOriginal();
 
-    public class textDataBenchmark
-    {
-        public static int num_letters = 5;
-        public static int num_words = 10000;
-        public string[] words = new string[num_words];
-        public HashSet<string> hashSet;
-
-        public string text { get; set; }
-
-        public override bool Equals(object obj)
-        {
-            var text_string = obj as textDataBenchmark;
-
-            if (text_string == null)
-                return false;
-
-            return text == text_string.text;
-        }
-
-        public override int GetHashCode()
-        {
-            int textHashCode = text?.GetHashCode() ?? 0;
-            return textHashCode;
-        }
-
-        public textDataBenchmark()
-        {
-            hashSet = new HashSet<string>();
-            Random rand = new Random();
-            char[] letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
-
-            for (int i = 1; i <= num_words; i++)
+            Console.WriteLine("Prefix обход дерева:");
+            foreach (var item in tree.preOrder())
             {
-                string word = "";
-                for (int j = 1; j <= num_letters; j++)
-                {
-                    int letter_num = rand.Next(0, letters.Length - 1);
-                    word += letters[letter_num];
-                }
-
-                words[i - 1] = word;
-                hashSet.Add(word);
+                Console.Write(item + ", ");
             }
 
-            // заносим в массив и hashSet слово, которое будем искать
-            words[words.Length - 1] = "Santa";
-            hashSet.Add(words[words.Length - 1]);
-
-            //for (int i = 0; i < words.Length; i++)
-            //{
-            //    Console.WriteLine($"{i} = {words[i]}");
-            //}
-        }
-
-        [Benchmark]
-        public bool searchString()
-        {
-            string search = "Santa ";
-            for (int i = 0; i < words.Length; i++)
+            Console.WriteLine("\nPostfix обход дерева:");
+            foreach (var item in tree.postOrder())
             {
-                if (search == words[i])
-                {
-                    return true;
-                }
+                Console.Write(item + ", ");
             }
-            return false;
-        }
 
-        [Benchmark]
-        public bool searchHash()
-        {
-            string search = "Santa";
-            return hashSet.Contains(search);
+            Console.WriteLine("\nInfix обход дерева:");
+            foreach (var item in tree.inOrder())
+            {
+                Console.Write(item + ", ");
+            }
+
+            Console.WriteLine($"\n\nИщем в дереве узел со значением {searchData}");
+
+            var tmp = tree.search(tree.Root, searchData);
+
+
+            if (tmp != null)
+            {
+                Console.WriteLine($"Узел:{tmp.Data} Левый потомок: {((tmp.Left != null) ? tmp.Left.Data : -1)} Правый потомок: {((tmp.Right != null) ? tmp.Right.Data : -1)} Родитель: {tmp.Parent.Data}");
+            }
+            else
+            {
+                Console.WriteLine($"Узел:{searchData} Не найден!");
+            }
+
+            Console.WriteLine($"\nУдаляем узел:{searchData}");
+            Console.WriteLine($"{tree.remove(tree.Root, searchData)}");
+            Console.WriteLine("Получилось дерево:");
+            BTreePrinter<int>.Print(tree.Root);
+            //tree.PrintToConsoleOriginal();
         }
     }
 }
